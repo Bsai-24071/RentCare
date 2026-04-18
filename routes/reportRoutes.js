@@ -24,25 +24,40 @@ router.get("/complaints", protect, async (req, res) => {
     const doc = new PDFDocument({ margin: 50 });
     const chunks = [];
 
+    // Prevent response from closing prematurely
+    res.on('close', () => {
+      doc.destroy();
+    });
+
     // Buffer the PDF
-    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("data", (chunk) => {
+      if (!res.writableEnded) {
+        chunks.push(chunk);
+      }
+    });
+    
     doc.on("end", () => {
-      const pdf = Buffer.concat(chunks);
-      
-      // Set response headers
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Length", pdf.length);
-      res.setHeader("Content-Disposition", 'attachment; filename="complaints-report.pdf"');
-      
-      // Send PDF
-      res.end(pdf);
+      if (!res.headersSent) {
+        const pdf = Buffer.concat(chunks);
+        
+        // Set response headers
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Length", pdf.length);
+        res.setHeader("Content-Disposition", 'attachment; filename="complaints-report.pdf"');
+        
+        // Send PDF
+        res.end(pdf);
+      }
     });
 
     doc.on("error", (error) => {
-      res.status(500).json({
-        message: "Error generating PDF",
-        error: error.message,
-      });
+      doc.destroy();
+      if (!res.headersSent) {
+        res.status(500).json({
+          message: "PDF generation error",
+          error: error.message,
+        });
+      }
     });
 
     // Write title
@@ -91,25 +106,40 @@ router.get("/rent-payments", protect, async (req, res) => {
     const doc = new PDFDocument({ margin: 50 });
     const chunks = [];
 
+    // Prevent response from closing prematurely
+    res.on('close', () => {
+      doc.destroy();
+    });
+
     // Buffer the PDF
-    doc.on("data", (chunk) => chunks.push(chunk));
+    doc.on("data", (chunk) => {
+      if (!res.writableEnded) {
+        chunks.push(chunk);
+      }
+    });
+    
     doc.on("end", () => {
-      const pdf = Buffer.concat(chunks);
-      
-      // Set response headers
-      res.setHeader("Content-Type", "application/pdf");
-      res.setHeader("Content-Length", pdf.length);
-      res.setHeader("Content-Disposition", 'attachment; filename="rent-payments-report.pdf"');
-      
-      // Send PDF
-      res.end(pdf);
+      if (!res.headersSent) {
+        const pdf = Buffer.concat(chunks);
+        
+        // Set response headers
+        res.setHeader("Content-Type", "application/pdf");
+        res.setHeader("Content-Length", pdf.length);
+        res.setHeader("Content-Disposition", 'attachment; filename="rent-payments-report.pdf"');
+        
+        // Send PDF
+        res.end(pdf);
+      }
     });
 
     doc.on("error", (error) => {
-      res.status(500).json({
-        message: "Error generating PDF",
-        error: error.message,
-      });
+      doc.destroy();
+      if (!res.headersSent) {
+        res.status(500).json({
+          message: "PDF generation error",
+          error: error.message,
+        });
+      }
     });
 
     // Write title
