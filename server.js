@@ -21,12 +21,18 @@ const propertyRoutes = require("./routes/propertyRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
 const authRoutes = require("./routes/authRoutes");
 const fileRoutes = require("./routes/fileRoutes");
+const rentRoutes = require("./routes/rentRoutes");
+const reviewRoutes = require("./routes/reviewRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 
 app.use("/api/users", userRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/complaints", complaintRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/files", fileRoutes);
+app.use("/api/rent", rentRoutes);
+app.use("/api/reviews", reviewRoutes);
+app.use("/api/reports", reportRoutes);
 
 app.get("/", (req, res) => {
   res.send("RentCare backend is running");

@@ -1,8 +1,10 @@
 const Complaint = require("../models/Complaint");
+const Notification = require("../models/Notification");
 const mongoose = require("mongoose");
 const { GridFSBucket } = require("mongodb");
 
 let gfsBucket;
+let io;
 
 // Initialize GridFS bucket
 mongoose.connection.on('connected', () => {
@@ -138,6 +140,27 @@ const updateComplaintStatus = async (req, res) => {
     if (!updatedComplaint) {
       return res.status(404).json({
         message: "Complaint not found",
+      });
+    }
+
+    // Save notification to MongoDB
+    const notif = await Notification.create({
+      userId: updatedComplaint.tenantId,
+      message: `Your complaint "${updatedComplaint.title}" status changed to: ${status}`,
+      type: 'complaint',
+      refId: updatedComplaint._id,
+    });
+
+    // Send real-time notification via Socket.io (lazy load to avoid circular dependency)
+    if (!io) {
+      io = require("../server").io;
+    }
+    if (io) {
+      io.to(updatedComplaint.tenantId.toString()).emit('notification', {
+        message: notif.message,
+        type: notif.type,
+        refId: notif.refId,
+        timestamp: notif.createdAt,
       });
     }
 
