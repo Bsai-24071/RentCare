@@ -23,6 +23,7 @@ const addComplaint = async (req, res) => {
       propertyId,
       contractorId,
       deadline,
+      imageIds,
     } = req.body;
 
     const newComplaint = await Complaint.create({
@@ -33,7 +34,7 @@ const addComplaint = async (req, res) => {
       propertyId,
       contractorId,
       deadline,
-      imageIds: [],
+      imageIds: imageIds || [],
     });
 
     res.status(201).json({
@@ -129,23 +130,40 @@ const addComplaintWithImage = async (req, res) => {
 const updateComplaintStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, contractorId } = req.body;
 
-    const updatedComplaint = await Complaint.findByIdAndUpdate(
-      id,
-      { status },
-      { new: true }
-    );
-
-    if (!updatedComplaint) {
+    // Get the complaint BEFORE updating to preserve tenantId
+    const complaint = await Complaint.findById(id).populate('tenantId').populate('contractorId');
+    
+    if (!complaint) {
       return res.status(404).json({
         message: "Complaint not found",
       });
     }
 
-    // Save notification to MongoDB
+    // Store tenantId BEFORE the update
+    const tenantIdValue = complaint.tenantId._id || complaint.tenantId;
+    const tenantName = complaint.tenantId.name;
+
+    // Now update the complaint
+    const updateData = { status };
+    if (contractorId) {
+      updateData.contractorId = contractorId;
+    }
+    // Set resolvedAt when complaint is marked as resolved
+    if (status === 'resolved') {
+      updateData.resolvedAt = new Date();
+    }
+
+    const updatedComplaint = await Complaint.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    ).populate('tenantId').populate('contractorId');
+
+    // Save notification to MongoDB using the stored tenantId
     const notif = await Notification.create({
-      userId: updatedComplaint.tenantId,
+      userId: tenantIdValue,
       message: `Your complaint "${updatedComplaint.title}" status changed to: ${status}`,
       type: 'complaint',
       refId: updatedComplaint._id,
@@ -156,7 +174,7 @@ const updateComplaintStatus = async (req, res) => {
       io = require("../server").io;
     }
     if (io) {
-      io.to(updatedComplaint.tenantId.toString()).emit('notification', {
+      io.to(tenantIdValue.toString()).emit('notification', {
         message: notif.message,
         type: notif.type,
         refId: notif.refId,

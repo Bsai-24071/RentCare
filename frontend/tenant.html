@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RentCare - Tenant Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard">
+    <div class="sidebar">
+      <h2>RentCare</h2>
+      <nav>
+        <a href="#" onclick="showSection('complaints', event)" class="active">My Complaints</a>
+        <a href="#" onclick="showSection('new-complaint', event)">File Complaint</a>
+        <a href="#" onclick="showSection('rent', event)">Rent Payments</a>
+        <a href="#" onclick="showSection('reviews', event)">My Reviews</a>
+      </nav>
+    </div>
+
+    <div class="main-content">
+      <div class="topbar">
+        <div>
+          <div class="page-title" id="welcome-name">Welcome, Tenant</div>
+          <div class="page-sub">Tenant Dashboard</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:20px;">
+          <div class="notif-bell">
+            🔔
+            <span class="notif-count" id="notif-count" style="display:none;">0</span>
+          </div>
+          <button class="logout-btn" onclick="logout()">Logout</button>
+        </div>
+      </div>
+
+      <div id="section-complaints">
+        <div class="card">
+          <h3>My Complaints</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>Category</th>
+                <th>Status</th>
+                <th>Deadline</th>
+                <th>Resolved At</th>
+              </tr>
+            </thead>
+            <tbody id="complaints-tbody">
+              <tr><td colspan="5">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="section-new-complaint" style="display:none;">
+        <div class="card">
+          <h3>File a New Complaint</h3>
+          <div id="complaint-msg"></div>
+          <div class="form-group">
+            <label>Title</label>
+            <input id="c-title" type="text">
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea id="c-desc" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label>Category</label>
+            <select id="c-cat">
+              <option value="plumbing">Plumbing</option>
+              <option value="electrical">Electrical</option>
+              <option value="cleaning">Cleaning</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Property ID</label>
+            <input id="c-property" type="text" placeholder="Ask your landlord for property ID">
+          </div>
+          <div class="form-group">
+            <label>Deadline (optional)</label>
+            <input id="c-deadline" type="date">
+          </div>
+          <div class="form-group">
+            <label>Photo (optional)</label>
+            <input id="c-image" type="file" accept="image/*">
+          </div>
+          <button class="btn btn-primary" onclick="submitComplaint()">Submit Complaint</button>
+        </div>
+      </div>
+
+      <div id="section-rent" style="display:none;">
+        <div class="card">
+          <h3>Submit Rent Payment</h3>
+          <div id="rent-msg"></div>
+          <div class="form-group">
+            <label>Property ID</label>
+            <input id="r-property" type="text">
+          </div>
+          <div class="form-group">
+            <label>Amount (PKR)</label>
+            <input id="r-amount" type="number">
+          </div>
+          <div class="form-group">
+            <label>Month</label>
+            <input id="r-month" type="text" placeholder="e.g. April 2025">
+          </div>
+          <div class="form-group">
+            <label>Payment Receipt</label>
+            <input id="r-image" type="file" accept="image/*">
+          </div>
+          <button class="btn btn-primary" onclick="submitRent()">Submit Payment</button>
+        </div>
+      </div>
+
+      <div id="section-reviews" style="display:none;">
+        <div class="card">
+          <h3>My Reviews</h3>
+          <div id="review-list" style="margin-bottom:20px;">
+            <p style="color:#888;">Loading reviews...</p>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Add New Review</h3>
+          <div id="review-msg"></div>
+          <div class="form-group">
+            <label>Select Complaint</label>
+            <select id="r-complaint" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;" onchange="updateContractorFromComplaint()">
+              <option value="">-- Select a resolved complaint --</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Contractor</label>
+            <select id="r-contractor" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;">
+              <option value="">Select a contractor</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rating (1-5 stars)</label>
+            <select id="r-rating" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;">
+              <option value="">Select rating</option>
+              <option value="1">⭐ 1 - Poor</option>
+              <option value="2">⭐⭐ 2 - Fair</option>
+              <option value="3">⭐⭐⭐ 3 - Good</option>
+              <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
+              <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Comment (optional)</label>
+            <textarea id="r-comment" rows="3" placeholder="Share your experience..."></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+  <script>
+    requireAuth();
+    const user = getUser();
+    if (!user || user.role !== 'tenant') logout();
+
+    const tenantName = user.name;
+    document.getElementById('welcome-name').textContent = 'Welcome, ' + tenantName;
+    document.getElementById('c-deadline').min = new Date().toISOString().split('T')[0];
+
+    initSocket(user.id);
+
+    function showSection(name, e) {
+      ['complaints','new-complaint','rent','reviews'].forEach(s => {
+        document.getElementById('section-' + s).style.display = s === name ? 'block' : 'none';
+      });
+      if (name === 'reviews') {
+        loadMyReviews();
+        loadContractorsForReview();
+        loadComplaintsForReview();
+      }
+      document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+      if (e && e.target) e.target.classList.add('active');
+    }
+
+    async function loadMyComplaints() {
+      try {
+        const complaints = await loadComplaints();
+        const tbody = document.getElementById('complaints-tbody');
+        const mine = complaints.filter(c => {
+          if (!c.tenantId) return false;
+          const tid = (typeof c.tenantId === 'object') ? c.tenantId._id : c.tenantId;
+          return tid === user.id;
+        });
+        if (!mine.length) {
+          tbody.innerHTML = '<tr><td colspan="4" style="color:#888">No complaints filed yet</td></tr>';
+          return;
+        }
+        tbody.innerHTML = mine.map(c => {
+          let deadlineDisplay = 'Not set';
+          if (c.deadline) {
+            const d = new Date(c.deadline);
+            const today = new Date();
+            today.setHours(0,0,0,0);
+            const diff = Math.ceil((d - today) / (1000*60*60*24));
+            const formatted = d.toLocaleDateString();
+            if (c.status !== 'resolved') {
+              if (diff < 0) deadlineDisplay = '<span style="color:#c62828;font-weight:600;">' + formatted + ' (Overdue)</span>';
+              else if (diff <= 2) deadlineDisplay = '<span style="color:#e65100;font-weight:600;">' + formatted + ' (' + diff + 'd left)</span>';
+              else deadlineDisplay = formatted;
+            } else {
+              deadlineDisplay = formatted;
+            }
+          }
+          let resolvedCol = '';
+          if (c.status === 'resolved') {
+            const resolvedAt = c.resolvedAt ? new Date(c.resolvedAt).toLocaleString() : 'N/A';
+            resolvedCol = '<td><span style="font-size:11px;color:#085041;">✅ ' + resolvedAt + '</span></td>';
+          } else {
+            resolvedCol = '<td>-</td>';
+          }
+          return '<tr><td>' + c.title + '</td><td>' + c.category + '</td><td>' + statusBadge(c.status) + '</td><td>' + deadlineDisplay + '</td>' + resolvedCol + '</tr>';
+        }).join('');
+      } catch (error) {
+        document.getElementById('complaints-tbody').innerHTML = '<tr><td colspan="4" style="color:red;">Error loading. Is server running?</td></tr>';
+      }
+    }
+
+    async function submitComplaint() {
+      const title = document.getElementById('c-title').value.trim();
+      const description = document.getElementById('c-desc').value.trim();
+      const category = document.getElementById('c-cat').value;
+      const propertyId = document.getElementById('c-property').value.trim();
+      const deadline = document.getElementById('c-deadline').value;
+      const imageFile = document.getElementById('c-image').files[0];
+      const msgDiv = document.getElementById('complaint-msg');
+
+      if (!title || !description || !propertyId) {
+        msgDiv.innerHTML = '<div class="error-msg">Please fill all required fields</div>';
+        return;
+      }
+
+      let imageIds = [];
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        const uploadRes = await fetch(BASE_URL + '/api/files/upload', {
+          method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() }, body: formData
+        });
+        const uploadData = await uploadRes.json();
+        if (uploadData.fileId) imageIds = [uploadData.fileId];
+      }
+
+      const payload = { title, description, category, tenantId: user.id, propertyId, imageIds };
+      if (deadline) payload.deadline = deadline;
+
+      const data = await apiPost('/api/complaints/add', payload);
+      if (data.complaint) {
+        msgDiv.innerHTML = '<div class="success-msg">Complaint submitted successfully!</div>';
+        ['c-title','c-desc','c-property','c-deadline','c-image'].forEach(id => document.getElementById(id).value = '');
+        loadMyComplaints();
+      } else {
+        msgDiv.innerHTML = '<div class="error-msg">' + (data.message || 'Error submitting') + '</div>';
+      }
+    }
+
+    async function submitRent() {
+      const propertyId = document.getElementById('r-property').value.trim();
+      const amount = document.getElementById('r-amount').value;
+      const month = document.getElementById('r-month').value.trim();
+      const imageFile = document.getElementById('r-image').files[0];
+      const msgDiv = document.getElementById('rent-msg');
+
+      if (!propertyId || !amount || !month) {
+        msgDiv.innerHTML = '<div class="error-msg">Please fill all fields</div>';
+        return;
+      }
+
+      let proofImageId = null;
+      if (imageFile) {
+        const formData = new FormData();
+        formData.append('image', imageFile);
+        const uploadRes = await fetch(BASE_URL + '/api/files/upload', {
+          method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() }, body: formData
+        });
+        const uploadData = await uploadRes.json();
+        proofImageId = uploadData.fileId || null;
+      }
+
+      const data = await apiPost('/api/rent/add', { tenantId: user.id, propertyId, amount: Number(amount), month, proofImageId });
+      if (data.payment) {
+        msgDiv.innerHTML = '<div class="success-msg">Payment submitted successfully!</div>';
+        ['r-property','r-amount','r-month','r-image'].forEach(id => document.getElementById(id).value = '');
+      } else {
+        msgDiv.innerHTML = '<div class="error-msg">' + (data.message || 'Error submitting') + '</div>';
+      }
+    }
+
+    async function loadMyReviews() {
+      try {
+        const data = await apiGet('/api/reviews/tenant/' + user.id);
+        const reviews = data.reviews || [];
+        const reviewList = document.getElementById('review-list');
+        if (!reviews.length) { reviewList.innerHTML = '<p style="color:#888;">No reviews submitted yet</p>'; return; }
+        reviewList.innerHTML = reviews.map(r => {
+          const cName = (typeof r.contractorId === 'object') ? (r.contractorId ? r.contractorId.name : 'Unknown') : 'Unknown';
+          return '<div style="background:#f5f5f5;padding:12px;border-radius:8px;margin-bottom:10px;">' +
+            '<div style="font-weight:600;">' + cName + '</div>' +
+            '<div style="color:#666;font-size:12px;margin:5px 0;">' + '⭐'.repeat(r.rating) + ' (' + r.rating + '/5)</div>' +
+            '<div style="font-size:13px;">' + (r.comment || 'No comment provided') + '</div></div>';
+        }).join('');
+      } catch (error) {
+        document.getElementById('review-list').innerHTML = '<p style="color:red;">Error loading reviews</p>';
+      }
+    }
+
+    async function loadContractorsForReview() {
+      try {
+        const res = await fetch(BASE_URL + '/api/users', { headers: { 'Authorization': 'Bearer ' + getToken() } });
+        const data = await res.json();
+        const contractors = (data.users || []).filter(u => u.role === 'contractor');
+        document.getElementById('r-contractor').innerHTML = '<option value="">Select a contractor</option>' +
+          contractors.map(c => '<option value="' + c._id + '">' + c.name + '</option>').join('');
+      } catch (error) { console.error('Error loading contractors:', error); }
+    }
+
+    async function loadComplaintsForReview() {
+      try {
+        const [complaintsResp, reviewsResp] = await Promise.all([
+          loadComplaints(),
+          apiGet('/api/reviews/tenant/' + user.id)
+        ]);
+        const reviewedComplaintIds = new Set((reviewsResp.reviews || []).map(r => {
+          return (typeof r.complaintId === 'object') ? r.complaintId?._id : r.complaintId;
+        }).filter(Boolean));
+
+        const myResolved = complaintsResp.filter(c => {
+          if (!c.tenantId) return false;
+          const tid = (typeof c.tenantId === 'object') ? c.tenantId._id : c.tenantId;
+          return tid === user.id && c.status === 'resolved' && !reviewedComplaintIds.has(c._id);
+        });
+        const select = document.getElementById('r-complaint');
+        if (!myResolved.length) { select.innerHTML = '<option value="">-- No unreviewed resolved complaints --</option>'; return; }
+        select.innerHTML = '<option value="">-- Select a resolved complaint --</option>' +
+          myResolved.map(c => '<option value="' + c._id + '">' + c.title + ' (Resolved)</option>').join('');
+      } catch (error) {
+        document.getElementById('r-complaint').innerHTML = '<option value="">Error loading complaints</option>';
+      }
+    }
+
+    function updateContractorFromComplaint() {
+      const complaintId = document.getElementById('r-complaint').value;
+      if (!complaintId) { document.getElementById('r-contractor').value = ''; return; }
+      loadComplaints().then(complaints => {
+        const c = complaints.find(x => x._id === complaintId);
+        if (c && c.contractorId) {
+          const cid = (typeof c.contractorId === 'object') ? c.contractorId._id : c.contractorId;
+          document.getElementById('r-contractor').value = cid;
+        }
+      });
+    }
+
+    async function submitReview() {
+      const complaintId = document.getElementById('r-complaint').value;
+      const contractorId = document.getElementById('r-contractor').value;
+      const rating = document.getElementById('r-rating').value;
+      const comment = document.getElementById('r-comment').value.trim();
+      const msgDiv = document.getElementById('review-msg');
+
+      if (!complaintId || !contractorId || !rating) {
+        msgDiv.innerHTML = '<div class="error-msg" style="background:#ffebee;color:#c62828;padding:10px;border-radius:6px;">Please select complaint, contractor, and rating</div>';
+        return;
+      }
+
+      const data = await apiPost('/api/reviews/add', { tenantId: user.id, contractorId, complaintId, rating: Number(rating), comment });
+      if (data.review) {
+        msgDiv.innerHTML = '<div class="success-msg" style="background:#e8f5e9;color:#2e7d32;padding:10px;border-radius:6px;">Review submitted successfully!</div>';
+        ['r-complaint','r-contractor','r-rating','r-comment'].forEach(id => document.getElementById(id).value = '');
+        loadMyReviews();
+        loadComplaintsForReview(); // refresh to remove reviewed complaint from dropdown
+      } else {
+        msgDiv.innerHTML = '<div class="error-msg" style="background:#ffebee;color:#c62828;padding:10px;border-radius:6px;">' + (data.message || 'Error submitting review') + '</div>';
+      }
+    }
+
+    loadMyComplaints();
+  </script>
+</body>
+</html>

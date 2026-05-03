@@ -70,7 +70,36 @@ const getContractorReviews = async (req, res) => {
   }
 };
 
+const getTenantReviews = async (req, res) => {
+  try {
+    const { tenantId } = req.params;
+
+    // Get all reviews submitted by tenant
+    const reviews = await Review.find({ tenantId })
+      .populate("contractorId", "name email")
+      .populate("complaintId", "title");
+
+    if (!reviews || reviews.length === 0) {
+      return res.status(200).json({
+        message: "No reviews submitted by this tenant",
+        reviews: [],
+      });
+    }
+
+    res.status(200).json({
+      message: "Tenant reviews retrieved successfully",
+      reviews,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching reviews",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   addReview,
   getContractorReviews,
+  getTenantReviews,
 };

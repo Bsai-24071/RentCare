@@ -2,7 +2,9 @@ const express = require("express");
 const http = require("http");
 const dotenv = require("dotenv");
 const { Server } = require("socket.io");
+const cors = require("cors");
 const connectDB = require("./config/db");
+const { startCronJobs } = require("./utils/cronJobs");
 
 dotenv.config();
 connectDB();
@@ -15,6 +17,7 @@ const io = new Server(server, {
 });
 
 app.use(express.json());
+app.use(cors());
 // Routes
 const userRoutes = require("./routes/userRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
@@ -43,14 +46,20 @@ io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
   socket.on("join_room", (userId) => {
-    socket.join(userId);
-    console.log("User joined room:", userId);
+    // Ensure userId is a string
+    const roomName = String(userId);
+    socket.join(roomName);
+    console.log("User", socket.id, "joined room:", roomName);
   });
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
 });
+
+// Start cron jobs
+startCronJobs(io);
+
 module.exports = { io };
 
 const PORT = process.env.PORT || 5000;

@@ -3,6 +3,7 @@ const router = express.Router();
 const mongoose = require('mongoose');
 const { GridFSBucket, ObjectId } = require('mongodb');
 const upload = require('../config/gridfs');
+const { protect } = require('../middleware/authMiddleware');
 
 let gfsBucket;
 
@@ -60,7 +61,7 @@ router.post('/upload', upload.single('image'), async (req, res) => {
 });
 
 // GET /api/files/:id
-router.get('/:id', async (req, res) => {
+router.get('/:id', protect, async (req, res) => {
   try {
     if (!gfsBucket) {
       return res.status(500).json({ message: 'GridFS not initialized' });
@@ -92,7 +93,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // DELETE /api/files/:id
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', protect, async (req, res) => {
   try {
     if (!gfsBucket) {
       return res.status(500).json({ message: 'GridFS not initialized' });

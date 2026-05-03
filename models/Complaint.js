@@ -44,6 +44,10 @@ const complaintSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    resolvedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,
