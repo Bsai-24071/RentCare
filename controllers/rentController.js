@@ -47,7 +47,13 @@ const addRentPayment = async (req, res) => {
 
 const getAllRentPayments = async (req, res) => {
   try {
-    const payments = await RentPayment.find()
+    const landlordId = req.user?.id || req.user?._id;
+    if (!landlordId) return res.status(401).json({ message: "Unauthorized" });
+
+    const properties = await Property.find({ landlordId }).select('_id');
+    const propertyIds = properties.map(p => p._id);
+
+    const payments = await RentPayment.find({ propertyId: { $in: propertyIds } })
       .populate("tenantId", "name email")
       .populate("propertyId", "address monthlyRent");
     res.status(200).json({ message: "All rent payments fetched successfully", payments });

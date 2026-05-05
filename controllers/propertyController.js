@@ -20,7 +20,10 @@ const addProperty = async (req, res) => {
 
 const getProperties = async (req, res) => {
   try {
-    const properties = await Property.find()
+    const landlordId = req.user?.id || req.user?._id;
+    if (!landlordId) return res.status(401).json({ message: "Unauthorized" });
+
+    const properties = await Property.find({ landlordId })
       .populate("landlordId", "name email")
       .populate("tenants", "name email")
       .lean();

@@ -56,6 +56,7 @@
         </div>
       </div>
 
+      <!-- OVERVIEW SECTION -->
       <div id="section-overview">
         <div class="stats-grid">
           <div class="stat-card accent1">
@@ -81,8 +82,9 @@
         </div>
       </div>
 
-      <!-- Properties -->
-      < <div class="card" style="margin-bottom:20px;">
+      <!-- PROPERTIES SECTION -->
+      <div id="section-properties" style="display:none;">
+        <div class="card" style="margin-bottom:20px;">
           <h3>🏢 My Properties</h3>
           <table>
             <thead>
@@ -127,8 +129,9 @@
         </div>
       </div>
 
-      <!-- All Complaints -->
-      < <div class="card">
+      <!-- ALL COMPLAINTS SECTION -->
+      <div id="section-complaints" style="display:none;">
+        <div class="card">
           <h3>📋 All Complaints</h3>
           <table>
             <thead>
@@ -163,14 +166,16 @@
         </div>
       </div>
 
-      <!-- Rent Payments -->
-      < <div id="rent-cards-container">
+      <!-- RENT PAYMENTS SECTION -->
+      <div id="section-rent" style="display:none;">
+        <div id="rent-cards-container">
           <p style="color:var(--muted);padding:20px 0;">Loading rent payments...</p>
         </div>
       </div>
 
-      <!-- Contractor Ratings -->
-      < <div class="card">
+      <!-- CONTRACTOR RATINGS SECTION -->
+      <div id="section-ratings" style="display:none;">
+        <div class="card">
           <h3>⭐ Contractor Ratings &amp; Reviews</h3>
           <div id="ratings-list">
             <p style="color:var(--muted);">Loading contractor ratings...</p>
@@ -179,10 +184,9 @@
       </div>
 
     </div><!-- /.main-content -->
-  </div><!
-
   </div>
-ss="modal">
+
+  <div id="assignModal" class="modal">
     <div class="modal-content">
       <span class="modal-close" onclick="closeModal()">&times;</span>
       <h2>🔧 Assign to Contractor</h2>
@@ -223,6 +227,7 @@ ss="modal">
       if (name === 'ratings') loadContractorRatings();
       if (name === 'properties') { loadProperties(); loadTenantsForDropdown(); }
       if (name === 'rent') loadRentCards();
+      if (name === 'complaints') loadDashboard();
       document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
       if (e && e.currentTarget) e.currentTarget.classList.add('active');
     }

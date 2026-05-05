@@ -161,7 +161,13 @@ const updateComplaintStatus = async (req, res) => {
 
 const getAllComplaints = async (req, res) => {
   try {
-    const complaints = await Complaint.find()
+    const landlordId = req.user?.id || req.user?._id;
+    if (!landlordId) return res.status(401).json({ message: "Unauthorized" });
+
+    const properties = await Property.find({ landlordId }).select('_id');
+    const propertyIds = properties.map(p => p._id);
+
+    const complaints = await Complaint.find({ propertyId: { $in: propertyIds } })
       .populate("tenantId", "name email role")
       .populate("propertyId", "address landlordId")
       .populate("contractorId", "name email");
