@@ -8,7 +8,6 @@ const RentPayment = require("../models/RentPayment");
 
 const router = express.Router();
 
-// Helper: fetch a GridFS file as a Buffer
 function fetchImageBuffer(fileId) {
   return new Promise((resolve, reject) => {
     try {
@@ -27,11 +26,9 @@ function fetchImageBuffer(fileId) {
   });
 }
 
-// Helper: safely embed one image into the PDF, returns true if drawn
 async function embedImage(doc, fileId, maxWidth = 300, maxHeight = 200) {
   try {
     const buf = await fetchImageBuffer(fileId);
-    // pdfkit accepts a Buffer directly; it auto-detects JPEG/PNG
     doc.image(buf, { fit: [maxWidth, maxHeight], align: "left" });
     doc.moveDown(0.5);
     return true;
@@ -43,7 +40,6 @@ async function embedImage(doc, fileId, maxWidth = 300, maxHeight = 200) {
   }
 }
 
-// ─── GET /api/reports/complaints ────────────────────────────────────────────
 router.get("/complaints", protect, async (req, res) => {
   try {
     const complaints = await Complaint.find()
@@ -76,12 +72,10 @@ router.get("/complaints", protect, async (req, res) => {
       }
     });
 
-    // ── Title ──
     doc.fontSize(20).text("RentCare - Complaints Report", { align: "center" });
     doc.fontSize(11).text(`Generated: ${new Date().toLocaleString()}`, { align: "center" });
     doc.moveDown(1);
 
-    // ── Summary ──
     doc.fontSize(12).text("Summary", { underline: true });
     doc.fontSize(11);
     doc.text(`Total Complaints: ${complaints.length}`);
@@ -90,11 +84,9 @@ router.get("/complaints", protect, async (req, res) => {
     doc.text(`Resolved: ${complaints.filter(c => c.status === "resolved").length}`);
     doc.moveDown(1);
 
-    // ── Each complaint ──
     for (let i = 0; i < complaints.length; i++) {
       const c = complaints[i];
 
-      // Keep complaints together as much as possible — add new page if near bottom
       if (doc.y > 650) doc.addPage();
 
       doc.fontSize(12).fillColor("#1a1a2e").text(`Complaint #${i + 1}`, { underline: true });
@@ -112,7 +104,6 @@ router.get("/complaints", protect, async (req, res) => {
         doc.text(`Resolved At: ${new Date(c.resolvedAt).toLocaleString()}`);
       }
 
-      // ── Embed complaint images ──
       if (c.imageIds && c.imageIds.length > 0) {
         doc.moveDown(0.3);
         doc.fontSize(11).text("Attached Photo(s):");
@@ -124,7 +115,6 @@ router.get("/complaints", protect, async (req, res) => {
 
       doc.moveDown(1);
 
-      // Separator line
       doc
         .moveTo(50, doc.y)
         .lineTo(doc.page.width - 50, doc.y)
@@ -139,7 +129,6 @@ router.get("/complaints", protect, async (req, res) => {
   }
 });
 
-// ─── GET /api/reports/rent-payments ─────────────────────────────────────────
 router.get("/rent-payments", protect, async (req, res) => {
   try {
     const payments = await RentPayment.find()
@@ -171,12 +160,10 @@ router.get("/rent-payments", protect, async (req, res) => {
       }
     });
 
-    // ── Title ──
     doc.fontSize(20).text("RentCare - Rent Payments Report", { align: "center" });
     doc.fontSize(11).text(`Generated: ${new Date().toLocaleString()}`, { align: "center" });
     doc.moveDown(1);
 
-    // ── Summary ──
     const totalAmount = payments.reduce((s, p) => s + p.amount, 0);
     const verifiedAmount = payments.filter(p => p.status === "verified").reduce((s, p) => s + p.amount, 0);
     const pendingAmount = payments.filter(p => p.status === "pending").reduce((s, p) => s + p.amount, 0);
@@ -189,7 +176,6 @@ router.get("/rent-payments", protect, async (req, res) => {
     doc.text(`Pending Amount:   Rs. ${pendingAmount}`);
     doc.moveDown(1);
 
-    // ── Each payment ──
     for (let i = 0; i < payments.length; i++) {
       const p = payments[i];
 
@@ -204,7 +190,7 @@ router.get("/rent-payments", protect, async (req, res) => {
       doc.text(`Status:   ${p.status}`);
       doc.text(`Date:     ${new Date(p.createdAt).toLocaleString()}`);
 
-      // ── Embed receipt image ──
+
       if (p.proofImageId) {
         doc.moveDown(0.3);
         doc.fontSize(11).text("Payment Receipt:");

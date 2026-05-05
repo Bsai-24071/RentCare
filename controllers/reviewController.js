@@ -4,7 +4,6 @@ const addReview = async (req, res) => {
   try {
     const { tenantId, contractorId, complaintId, rating, comment } = req.body;
 
-    // Validation
     if (!tenantId || !contractorId || !complaintId || !rating) {
       return res.status(400).json({
         message: "Missing required fields: tenantId, contractorId, complaintId, rating",
@@ -17,7 +16,6 @@ const addReview = async (req, res) => {
       });
     }
 
-    // Create review
     const newReview = await Review.create({
       tenantId,
       contractorId,
@@ -42,7 +40,6 @@ const getContractorReviews = async (req, res) => {
   try {
     const { contractorId } = req.params;
 
-    // Get all reviews for contractor
     const reviews = await Review.find({ contractorId }).populate("tenantId", "name email");
 
     if (!reviews || reviews.length === 0) {
@@ -53,7 +50,6 @@ const getContractorReviews = async (req, res) => {
       });
     }
 
-    // Calculate average rating
     const totalRating = reviews.reduce((sum, review) => sum + review.rating, 0);
     const averageRating = parseFloat((totalRating / reviews.length).toFixed(1));
 
@@ -74,7 +70,6 @@ const getTenantReviews = async (req, res) => {
   try {
     const { tenantId } = req.params;
 
-    // Get all reviews submitted by tenant
     const reviews = await Review.find({ tenantId })
       .populate("contractorId", "name email")
       .populate("complaintId", "title");

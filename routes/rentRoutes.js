@@ -4,17 +4,15 @@ const {
   addRentPayment,
   getAllRentPayments,
   verifyRentPayment,
+  getTenantRentPayments,
 } = require("../controllers/rentController");
 
 const router = express.Router();
 
-// POST /api/rent/add - Add new rent payment (protected)
 router.post("/add", protect, addRentPayment);
-
-// GET /api/rent - Get all rent payments (protected)
 router.get("/", protect, getAllRentPayments);
-
-// PUT /api/rent/verify/:id - Verify/update rent payment status (protected)
+router.get("/tenant/:tenantId", protect, getTenantRentPayments);
 router.put("/verify/:id", protect, verifyRentPayment);
 
 module.exports = router;
+

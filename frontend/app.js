@@ -1,5 +1,7 @@
 const BASE_URL = 'http://localhost:5000';
 
+// ── Auth helpers (unchanged) ──────────────────────────────────────────────────
+
 function getToken() {
   return sessionStorage.getItem('token') || localStorage.getItem('token');
 }
@@ -26,9 +28,7 @@ function showError(elementId, msg) {
 }
 
 function requireAuth() {
-  if (!getToken()) {
-    window.location.href = 'index.html';
-  }
+  if (!getToken()) window.location.href = 'index.html';
 }
 
 function logout() {
@@ -38,6 +38,8 @@ function logout() {
   sessionStorage.removeItem('user');
   window.location.href = 'index.html';
 }
+
+// ── API helpers (unchanged) ───────────────────────────────────────────────────
 
 async function loginUser() {
   const email = document.getElementById('email').value.trim();
@@ -122,53 +124,67 @@ async function loadComplaints() {
   }
 }
 
-// ─── Notification System ────────────────────────────────────────────────────
+// ── Notification System ───────────────────────────────────────────────────────
 
 const _notifications = [];
-
-function _getNotifBodyEl() {
-  const panel = document.getElementById('notif-panel');
-  if (!panel) return null;
-  // Body is the second child (first is header)
-  return panel.children[1] || null;
-}
-
-function _renderNotifPanel() {
-  const body = _getNotifBodyEl();
-  if (!body) return;
-  if (!_notifications.length) {
-    body.innerHTML = '<div style="padding:14px 16px;color:#888;font-size:13px;">No notifications yet</div>';
-    return;
-  }
-  body.innerHTML = _notifications.map(n =>
-    '<div style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;' +
-    (n.read ? 'color:#999;' : 'color:#1a1a2e;font-weight:500;') + '">' +
-    '<div>' + n.message + '</div>' +
-    '<div style="font-size:11px;color:#aaa;margin-top:3px;">' + n.time + '</div>' +
-    '</div>'
-  ).join('');
-}
-
-function _addNotification(message) {
-  const now = new Date();
-  const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  _notifications.unshift({ message, time, read: false });
-  if (_notifications.length > 20) _notifications.pop();
-  _updateNotifBadge();
-  _renderNotifPanel();
-  showToast(message);
-}
 
 function _updateNotifBadge() {
   const el = document.getElementById('notif-count');
   if (!el) return;
   const unread = _notifications.filter(n => !n.read).length;
   if (unread > 0) {
-    el.textContent = unread;
-    el.style.cssText = 'display:flex!important;position:absolute;top:-6px;right:-8px;background:#E24B4A;color:white;font-size:10px;font-weight:600;width:16px;height:16px;border-radius:50%;align-items:center;justify-content:center;';
+    el.textContent = unread > 99 ? '99+' : unread;
+    el.style.setProperty('display', 'flex', 'important');
+    el.style.alignItems = 'center';
+    el.style.justifyContent = 'center';
+    el.style.lineHeight = '1';
   } else {
     el.style.display = 'none';
   }
+}
+
+function _renderNotifPanel() {
+  const panel = document.getElementById('notif-panel');
+  if (!panel) return;
+  const body = panel.querySelector('.notif-panel-body');
+  if (!body) return;
+  if (!_notifications.length) {
+    body.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+    return;
+  }
+  body.innerHTML = _notifications.map(n =>
+    '<div class="notif-item' + (n.read ? '' : ' unread') + '">' +
+    '<div class="notif-item-msg">' + n.message + '</div>' +
+    '<div class="notif-item-time">' + n.time + '</div>' +
+    '</div>'
+  ).join('');
+}
+
+function _addNotification(message, time, read) {
+  const t = time || new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  _notifications.unshift({ message, time: t, read: !!read });
+  if (_notifications.length > 30) _notifications.pop();
+  _updateNotifBadge();
+  _renderNotifPanel();
+  if (!read) showToast(message);
+}
+
+// Load existing notifications from DB on page load
+async function _loadNotificationsFromDB(userId) {
+  try {
+    const data = await apiGet('/api/notifications/user/' + userId);
+    const notifs = data.notifications || [];
+    notifs.forEach(n => {
+      const time = new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      _notifications.push({ message: n.message, time, read: n.isRead });
+    });
+    _updateNotifBadge();
+    _renderNotifPanel();
+  } catch (err) { console.warn('Could not load notifications from DB'); }
+}
+
+async function _markAllRead(userId) {
+  try { await apiPut('/api/notifications/read/' + userId, {}); } catch (err) { }
 }
 
 function toggleNotifPanel() {
@@ -180,10 +196,15 @@ function toggleNotifPanel() {
     _notifications.forEach(n => n.read = true);
     _updateNotifBadge();
     _renderNotifPanel();
+    // Mark all read in DB (fire and forget)
+    const u = getUser();
+    if (u && u.id) _markAllRead(u.id);
   }
 }
 
-document.addEventListener('click', function(e) {
+
+// Close panel on outside click
+document.addEventListener('click', function (e) {
   const bell = document.getElementById('notif-bell-btn');
   const panel = document.getElementById('notif-panel');
   if (panel && bell && !bell.contains(e.target) && !panel.contains(e.target)) {
@@ -192,23 +213,21 @@ document.addEventListener('click', function(e) {
 });
 
 function injectNotifPanel() {
-  const bellDiv = document.querySelector('.notif-bell');
+  const bellDiv = document.getElementById('notif-bell-btn');
   if (!bellDiv) return;
-  bellDiv.id = 'notif-bell-btn';
-  bellDiv.onclick = toggleNotifPanel;
-  bellDiv.style.cursor = 'pointer';
-  bellDiv.style.position = 'relative';
+  // Already has the onclick set in HTML, just inject the dropdown panel
+  if (document.getElementById('notif-panel')) return; // already injected
 
   const panel = document.createElement('div');
   panel.id = 'notif-panel';
-  panel.style.cssText = 'display:none;position:absolute;top:36px;right:0;width:300px;background:white;border:1px solid #e0e0e0;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.12);z-index:9999;max-height:360px;overflow-y:auto;';
 
   const header = document.createElement('div');
-  header.style.cssText = 'padding:12px 16px;border-bottom:1px solid #f0f0f0;font-weight:600;font-size:13px;color:#1a1a2e;position:sticky;top:0;background:white;';
+  header.className = 'notif-panel-header';
   header.textContent = '🔔 Notifications';
 
   const body = document.createElement('div');
-  body.innerHTML = '<div style="padding:14px 16px;color:#888;font-size:13px;">No notifications yet</div>';
+  body.className = 'notif-panel-body';
+  body.innerHTML = '<div class="notif-empty">No notifications yet</div>';
 
   panel.appendChild(header);
   panel.appendChild(body);
@@ -217,26 +236,37 @@ function injectNotifPanel() {
 
 function initSocket(userId) {
   injectNotifPanel();
+  // Load existing notifications from DB immediately (badge shows without refresh)
+  _loadNotificationsFromDB(userId);
 
   const script = document.createElement('script');
   script.src = 'https://cdn.socket.io/4.7.2/socket.io.min.js';
-  script.onload = function() {
+  script.onload = function () {
     const socket = io(BASE_URL);
     socket.emit('join_room', userId);
-    socket.on('notification', function(data) {
+    socket.on('notification', function (data) {
       _addNotification(data.message);
     });
   };
   document.head.appendChild(script);
 }
 
+// ── Toast Notifications ───────────────────────────────────────────────────────
+
 function showToast(msg) {
   const toast = document.createElement('div');
-  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:#1a1a2e;color:white;padding:12px 20px;border-radius:8px;font-size:13px;z-index:99999;box-shadow:0 4px 12px rgba(0,0,0,0.2);';
+  toast.className = 'toast';
   toast.textContent = msg;
   document.body.appendChild(toast);
-  setTimeout(() => { if (document.body.contains(toast)) document.body.removeChild(toast); }, 4000);
+  setTimeout(() => {
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(120%)';
+    toast.style.transition = 'all 0.3s ease';
+    setTimeout(() => { if (document.body.contains(toast)) document.body.removeChild(toast); }, 350);
+  }, 3800);
 }
+
+// ── PDF Download (unchanged) ──────────────────────────────────────────────────
 
 async function downloadPDF(type) {
   try {

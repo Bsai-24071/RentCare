@@ -3,12 +3,10 @@ const Complaint = require('../models/Complaint');
 const Notification = require('../models/Notification');
 
 const startCronJobs = (io) => {
-  // Schedule a cron job to run every day at 8am
   cron.schedule('0 8 * * *', async () => {
     try {
       const now = new Date();
-      
-      // Find all overdue complaints (not resolved and deadline passed)
+
       const overdueComplaints = await Complaint.find({
         status: { $ne: 'resolved' },
         deadline: { $lt: now }
@@ -19,7 +17,7 @@ const startCronJobs = (io) => {
       // For each overdue complaint, create a notification and emit event
       for (const complaint of overdueComplaints) {
         const message = `Your complaint "${complaint.title}" is overdue`;
-        
+
         // Create notification in database
         const notification = await Notification.create({
           userId: complaint.tenantId,
@@ -29,7 +27,7 @@ const startCronJobs = (io) => {
         });
 
         // Emit socket.io event to tenant's room
-        io.to(complaint.tenantId.toString()).emit('notification', {
+        io.to(`tenant-${complaint.tenantId}`).emit('notification', {
           message: notification.message
         });
       }

@@ -1,41 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>RentCare - Tenant Dashboard</title>
+  <title>RentCare — Tenant Dashboard</title>
+  <meta name="description"
+    content="Manage your complaints, rent payments and reviews from your RentCare tenant dashboard.">
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div class="dashboard">
+
+    <!-- Sidebar -->
     <div class="sidebar">
-      <h2>RentCare</h2>
+      <div class="sidebar-header">
+        <div class="sidebar-logo-icon">🏠</div>
+        <h2>RentCare</h2>
+      </div>
       <nav>
-        <a href="#" onclick="showSection('complaints', event)" class="active">My Complaints</a>
-        <a href="#" onclick="showSection('new-complaint', event)">File Complaint</a>
-        <a href="#" onclick="showSection('rent', event)">Rent Payments</a>
-        <a href="#" onclick="showSection('reviews', event)">My Reviews</a>
+        <a href="#" id="nav-complaints" onclick="showSection('complaints',event)" class="active">
+          <span class="nav-icon">📋</span> My Complaints
+        </a>
+        <a href="#" id="nav-new-complaint" onclick="showSection('new-complaint',event)">
+          <span class="nav-icon">✏️</span> File Complaint
+        </a>
+        <a href="#" id="nav-rent" onclick="showSection('rent',event)">
+          <span class="nav-icon">💳</span> Rent Payments
+        </a>
+        <a href="#" id="nav-reviews" onclick="showSection('reviews',event)">
+          <span class="nav-icon">⭐</span> My Reviews
+        </a>
       </nav>
+      <div class="sidebar-user">
+        <div class="sidebar-user-name" id="sidebar-name">Loading...</div>
+        <div class="sidebar-user-role">Tenant</div>
+      </div>
     </div>
 
+    <!-- Main -->
     <div class="main-content">
       <div class="topbar">
         <div>
           <div class="page-title" id="welcome-name">Welcome, Tenant</div>
           <div class="page-sub">Tenant Dashboard</div>
         </div>
-        <div style="display:flex; align-items:center; gap:20px;">
-          <div class="notif-bell">
+        <div class="topbar-right">
+          <div class="notif-bell" id="notif-bell-btn" onclick="toggleNotifPanel()">
             🔔
-            <span class="notif-count" id="notif-count" style="display:none;">0</span>
+            <span class="notif-count" id="notif-count">0</span>
           </div>
           <button class="logout-btn" onclick="logout()">Logout</button>
         </div>
       </div>
 
+      <!-- My Complaints -->
       <div id="section-complaints">
         <div class="card">
-          <h3>My Complaints</h3>
+          <h3>📋 My Complaints</h3>
           <table>
             <thead>
               <tr>
@@ -47,36 +70,61 @@
               </tr>
             </thead>
             <tbody id="complaints-tbody">
-              <tr><td colspan="5">Loading...</td></tr>
+              <tr class="skeleton-row">
+                <td>████████████</td>
+                <td>████████</td>
+                <td>███████</td>
+                <td>██████████</td>
+                <td>████████████</td>
+              </tr>
+              <tr class="skeleton-row">
+                <td>████████████</td>
+                <td>████████</td>
+                <td>███████</td>
+                <td>██████████</td>
+                <td>████████████</td>
+              </tr>
+              <tr class="skeleton-row">
+                <td>████████████</td>
+                <td>████████</td>
+                <td>███████</td>
+                <td>██████████</td>
+                <td>████████████</td>
+              </tr>
             </tbody>
           </table>
         </div>
       </div>
 
+      <!-- File Complaint -->
       <div id="section-new-complaint" style="display:none;">
         <div class="card">
-          <h3>File a New Complaint</h3>
+          <h3>✏️ File a New Complaint</h3>
           <div id="complaint-msg"></div>
           <div class="form-group">
             <label>Title</label>
-            <input id="c-title" type="text">
+            <input id="c-title" type="text" placeholder="Brief title of the issue">
           </div>
           <div class="form-group">
             <label>Description</label>
-            <textarea id="c-desc" rows="3"></textarea>
+            <textarea id="c-desc" rows="3" placeholder="Describe the issue in detail..."></textarea>
           </div>
-          <div class="form-group">
-            <label>Category</label>
-            <select id="c-cat">
-              <option value="plumbing">Plumbing</option>
-              <option value="electrical">Electrical</option>
-              <option value="cleaning">Cleaning</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Property ID</label>
-            <input id="c-property" type="text" placeholder="Ask your landlord for property ID">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="form-group">
+              <label>Category</label>
+              <select id="c-cat">
+                <option value="plumbing">Plumbing</option>
+                <option value="electrical">Electrical</option>
+                <option value="cleaning">Cleaning</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Property</label>
+              <select id="c-property">
+                <option value="">Loading properties...</option>
+              </select>
+            </div>
           </div>
           <div class="form-group">
             <label>Deadline (optional)</label>
@@ -84,78 +132,125 @@
           </div>
           <div class="form-group">
             <label>Photo (optional)</label>
-            <input id="c-image" type="file" accept="image/*">
+            <div class="file-zone" onclick="document.getElementById('c-image').click()">
+              <input id="c-image" type="file" accept="image/*" onchange="previewFileName('c-image','c-image-name')">
+              <div class="file-zone-label">📎 <span>Browse file</span> or drag & drop here</div>
+              <div class="file-name-preview" id="c-image-name"></div>
+            </div>
           </div>
-          <button class="btn btn-primary" onclick="submitComplaint()">Submit Complaint</button>
+          <button class="btn btn-primary" onclick="submitComplaint()">🚀 Submit Complaint</button>
         </div>
       </div>
 
+      <!-- Rent Payments -->
       <div id="section-rent" style="display:none;">
+        <!-- Property info card (shown on select) -->
+        <div class="prop-info-card" id="rent-prop-info">
+          <div class="prop-info-card-title">📍 Property Details</div>
+          <div class="prop-info-card-address" id="rent-prop-address">—</div>
+          <div class="prop-info-card-rent">Expected Monthly Rent: <span id="rent-prop-amount">—</span></div>
+        </div>
+
         <div class="card">
-          <h3>Submit Rent Payment</h3>
+          <h3>💳 Submit Rent Payment</h3>
           <div id="rent-msg"></div>
           <div class="form-group">
-            <label>Property ID</label>
-            <input id="r-property" type="text">
+            <label>Property</label>
+            <select id="r-property" onchange="onRentPropertyChange()">
+              <option value="">Loading properties...</option>
+            </select>
           </div>
-          <div class="form-group">
-            <label>Amount (PKR)</label>
-            <input id="r-amount" type="number">
-          </div>
-          <div class="form-group">
-            <label>Month</label>
-            <input id="r-month" type="text" placeholder="e.g. April 2025">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+            <div class="form-group">
+              <label>Amount (PKR)</label>
+              <input id="r-amount" type="number" placeholder="e.g. 25000">
+            </div>
+            <div class="form-group">
+              <label>Month</label>
+              <input id="r-month" type="text" placeholder="e.g. May 2026">
+            </div>
           </div>
           <div class="form-group">
             <label>Payment Receipt</label>
-            <input id="r-image" type="file" accept="image/*">
+            <div class="file-zone" onclick="document.getElementById('r-image').click()">
+              <input id="r-image" type="file" accept="image/*" onchange="previewFileName('r-image','r-image-name')">
+              <div class="file-zone-label">📎 <span>Upload receipt</span> — JPEG or PNG</div>
+              <div class="file-name-preview" id="r-image-name"></div>
+            </div>
           </div>
-          <button class="btn btn-primary" onclick="submitRent()">Submit Payment</button>
+          <button class="btn btn-primary" onclick="submitRent()">💳 Submit Payment</button>
+        </div>
+
+        <!-- Payment History -->
+        <div class="card">
+          <h3>📜 Payment History</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Property</th>
+                <th>Amount</th>
+                <th>Month</th>
+                <th>Status</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody id="rent-history-tbody">
+              <tr class="skeleton-row">
+                <td>████████████</td>
+                <td>████████</td>
+                <td>█████████</td>
+                <td>███████</td>
+                <td>██████████</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
+      <!-- Reviews -->
       <div id="section-reviews" style="display:none;">
         <div class="card">
-          <h3>My Reviews</h3>
-          <div id="review-list" style="margin-bottom:20px;">
-            <p style="color:#888;">Loading reviews...</p>
+          <h3>⭐ My Reviews</h3>
+          <div id="review-list">
+            <p style="color:var(--muted);">Loading reviews...</p>
           </div>
         </div>
         <div class="card">
-          <h3>Add New Review</h3>
+          <h3>✍️ Add New Review</h3>
           <div id="review-msg"></div>
           <div class="form-group">
-            <label>Select Complaint</label>
-            <select id="r-complaint" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;" onchange="updateContractorFromComplaint()">
-              <option value="">-- Select a resolved complaint --</option>
+            <label>Select Resolved Complaint</label>
+            <select id="r-complaint" onchange="updateContractorFromComplaint()">
+              <option value="">— Select a resolved complaint —</option>
             </select>
           </div>
           <div class="form-group">
             <label>Contractor</label>
-            <select id="r-contractor" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;">
+            <select id="r-contractor">
               <option value="">Select a contractor</option>
             </select>
           </div>
           <div class="form-group">
-            <label>Rating (1-5 stars)</label>
-            <select id="r-rating" style="width:100%;padding:10px;border:1px solid #ddd;border-radius:6px;">
+            <label>Rating</label>
+            <select id="r-rating">
               <option value="">Select rating</option>
-              <option value="1">⭐ 1 - Poor</option>
-              <option value="2">⭐⭐ 2 - Fair</option>
-              <option value="3">⭐⭐⭐ 3 - Good</option>
-              <option value="4">⭐⭐⭐⭐ 4 - Very Good</option>
-              <option value="5">⭐⭐⭐⭐⭐ 5 - Excellent</option>
+              <option value="1">⭐ 1 — Poor</option>
+              <option value="2">⭐⭐ 2 — Fair</option>
+              <option value="3">⭐⭐⭐ 3 — Good</option>
+              <option value="4">⭐⭐⭐⭐ 4 — Very Good</option>
+              <option value="5">⭐⭐⭐⭐⭐ 5 — Excellent</option>
             </select>
           </div>
           <div class="form-group">
             <label>Comment (optional)</label>
             <textarea id="r-comment" rows="3" placeholder="Share your experience..."></textarea>
           </div>
-          <button class="btn btn-primary" onclick="submitReview()">Submit Review</button>
+          <button class="btn btn-primary" onclick="submitReview()">📤 Submit Review</button>
         </div>
       </div>
-    </div>
-  </div>
+
+    </div><!-- /.main-content -->
+  </div><!-- /.dashboard -->
 
   <script src="app.js"></script>
   <script>
@@ -163,68 +258,74 @@
     const user = getUser();
     if (!user || user.role !== 'tenant') logout();
 
-    const tenantName = user.name;
-    document.getElementById('welcome-name').textContent = 'Welcome, ' + tenantName;
+    document.getElementById('welcome-name').textContent = 'Welcome, ' + user.name;
+    document.getElementById('sidebar-name').textContent = user.name;
     document.getElementById('c-deadline').min = new Date().toISOString().split('T')[0];
 
     initSocket(user.id);
 
-    function showSection(name, e) {
-      ['complaints','new-complaint','rent','reviews'].forEach(s => {
-        document.getElementById('section-' + s).style.display = s === name ? 'block' : 'none';
-      });
-      if (name === 'reviews') {
-        loadMyReviews();
-        loadContractorsForReview();
-        loadComplaintsForReview();
+    // ── file preview helper ──
+    function previewFileName(inputId, previewId) {
+      const file = document.getElementById(inputId).files[0];
+      const el = document.getElementById(previewId);
+      if (file) {
+        el.textContent = '📎 ' + file.name;
+        el.style.display = 'block';
+      } else {
+        el.style.display = 'none';
       }
-      document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
-      if (e && e.target) e.target.classList.add('active');
     }
 
+    // ── Section switching ──
+    function showSection(name, e) {
+      ['complaints', 'new-complaint', 'rent', 'reviews'].forEach(s => {
+        document.getElementById('section-' + s).style.display = s === name ? 'block' : 'none';
+      });
+      if (name === 'reviews') { loadMyReviews(); loadContractorsForReview(); loadComplaintsForReview(); }
+      if (name === 'rent') loadRentHistory();
+      document.querySelectorAll('.sidebar nav a').forEach(a => a.classList.remove('active'));
+      if (e && e.currentTarget) e.currentTarget.classList.add('active');
+    }
+
+    // ── Load Complaints ──
     async function loadMyComplaints() {
       try {
-        const complaints = await loadComplaints();
+        const data = await apiGet('/api/complaints');
+        const complaints = data.complaints || [];
         const tbody = document.getElementById('complaints-tbody');
         const mine = complaints.filter(c => {
           if (!c.tenantId) return false;
-          const tid = (typeof c.tenantId === 'object') ? c.tenantId._id : c.tenantId;
+          const tid = typeof c.tenantId === 'object' ? c.tenantId._id : c.tenantId;
           return tid === user.id;
         });
         if (!mine.length) {
-          tbody.innerHTML = '<tr><td colspan="4" style="color:#888">No complaints filed yet</td></tr>';
+          tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px;">No complaints filed yet</td></tr>';
           return;
         }
         tbody.innerHTML = mine.map(c => {
           let deadlineDisplay = 'Not set';
           if (c.deadline) {
             const d = new Date(c.deadline);
-            const today = new Date();
-            today.setHours(0,0,0,0);
-            const diff = Math.ceil((d - today) / (1000*60*60*24));
-            const formatted = d.toLocaleDateString();
+            const today = new Date(); today.setHours(0, 0, 0, 0);
+            const diff = Math.ceil((d - today) / 86400000);
+            const fmt = d.toLocaleDateString();
             if (c.status !== 'resolved') {
-              if (diff < 0) deadlineDisplay = '<span style="color:#c62828;font-weight:600;">' + formatted + ' (Overdue)</span>';
-              else if (diff <= 2) deadlineDisplay = '<span style="color:#e65100;font-weight:600;">' + formatted + ' (' + diff + 'd left)</span>';
-              else deadlineDisplay = formatted;
-            } else {
-              deadlineDisplay = formatted;
-            }
+              if (diff < 0) deadlineDisplay = '<span style="color:#fca5a5;font-weight:600;">' + fmt + ' (Overdue)</span>';
+              else if (diff <= 2) deadlineDisplay = '<span style="color:#fcd34d;font-weight:600;">' + fmt + ' (' + diff + 'd left)</span>';
+              else deadlineDisplay = fmt;
+            } else deadlineDisplay = fmt;
           }
-          let resolvedCol = '';
-          if (c.status === 'resolved') {
-            const resolvedAt = c.resolvedAt ? new Date(c.resolvedAt).toLocaleString() : 'N/A';
-            resolvedCol = '<td><span style="font-size:11px;color:#085041;">✅ ' + resolvedAt + '</span></td>';
-          } else {
-            resolvedCol = '<td>-</td>';
-          }
-          return '<tr><td>' + c.title + '</td><td>' + c.category + '</td><td>' + statusBadge(c.status) + '</td><td>' + deadlineDisplay + '</td>' + resolvedCol + '</tr>';
+          const resolvedCol = c.status === 'resolved'
+            ? '<td><span style="font-size:11px;color:#6ee7b7;">✅ ' + (c.resolvedAt ? new Date(c.resolvedAt).toLocaleString() : 'N/A') + '</span></td>'
+            : '<td style="color:var(--muted);">—</td>';
+          return '<tr><td style="font-weight:500;">' + c.title + '</td><td style="color:var(--muted);">' + c.category + '</td><td>' + statusBadge(c.status) + '</td><td>' + deadlineDisplay + '</td>' + resolvedCol + '</tr>';
         }).join('');
-      } catch (error) {
-        document.getElementById('complaints-tbody').innerHTML = '<tr><td colspan="4" style="color:red;">Error loading. Is server running?</td></tr>';
+      } catch (err) {
+        document.getElementById('complaints-tbody').innerHTML = '<tr><td colspan="5" style="color:#fca5a5;">Error loading. Is server running?</td></tr>';
       }
     }
 
+    // ── Submit Complaint ──
     async function submitComplaint() {
       const title = document.getElementById('c-title').value.trim();
       const description = document.getElementById('c-desc').value.trim();
@@ -235,34 +336,54 @@
       const msgDiv = document.getElementById('complaint-msg');
 
       if (!title || !description || !propertyId) {
-        msgDiv.innerHTML = '<div class="error-msg">Please fill all required fields</div>';
+        msgDiv.innerHTML = '<div class="error-msg" style="display:block;">Please fill all required fields</div>';
         return;
       }
 
       let imageIds = [];
       if (imageFile) {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        const uploadRes = await fetch(BASE_URL + '/api/files/upload', {
-          method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() }, body: formData
-        });
-        const uploadData = await uploadRes.json();
-        if (uploadData.fileId) imageIds = [uploadData.fileId];
+        const fd = new FormData(); fd.append('image', imageFile);
+        const up = await fetch(BASE_URL + '/api/files/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() }, body: fd });
+        const ud = await up.json();
+        if (ud.fileId) imageIds = [ud.fileId];
       }
 
       const payload = { title, description, category, tenantId: user.id, propertyId, imageIds };
       if (deadline) payload.deadline = deadline;
-
       const data = await apiPost('/api/complaints/add', payload);
       if (data.complaint) {
-        msgDiv.innerHTML = '<div class="success-msg">Complaint submitted successfully!</div>';
-        ['c-title','c-desc','c-property','c-deadline','c-image'].forEach(id => document.getElementById(id).value = '');
+        msgDiv.innerHTML = '<div class="success-msg">✅ Complaint submitted successfully!</div>';
+        ['c-title', 'c-desc', 'c-deadline'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('c-image').value = '';
+        document.getElementById('c-image-name').style.display = 'none';
         loadMyComplaints();
       } else {
-        msgDiv.innerHTML = '<div class="error-msg">' + (data.message || 'Error submitting') + '</div>';
+        msgDiv.innerHTML = '<div class="error-msg" style="display:block;">' + (data.message || 'Error submitting') + '</div>';
       }
     }
 
+    // ── Property info + auto-fill amount on rent page ──
+    function onRentPropertyChange() {
+      const id = document.getElementById('r-property').value;
+      const p = _properties.find(x => x._id === id);
+      const card = document.getElementById('rent-prop-info');
+      if (p) {
+        document.getElementById('rent-prop-address').textContent = p.address;
+        if (p.monthlyRent) {
+          document.getElementById('rent-prop-amount').textContent = 'PKR ' + p.monthlyRent.toLocaleString();
+          // Auto-fill the amount field
+          document.getElementById('r-amount').value = p.monthlyRent;
+        } else {
+          document.getElementById('rent-prop-amount').textContent = 'Not specified — enter manually';
+        }
+        card.classList.add('visible');
+      } else {
+        card.classList.remove('visible');
+        document.getElementById('r-amount').value = '';
+      }
+    }
+
+    // ── Submit Rent ──
     async function submitRent() {
       const propertyId = document.getElementById('r-property').value.trim();
       const amount = document.getElementById('r-amount').value;
@@ -271,46 +392,91 @@
       const msgDiv = document.getElementById('rent-msg');
 
       if (!propertyId || !amount || !month) {
-        msgDiv.innerHTML = '<div class="error-msg">Please fill all fields</div>';
+        msgDiv.innerHTML = '<div class="error-msg" style="display:block;">Please fill all required fields</div>';
         return;
       }
 
       let proofImageId = null;
       if (imageFile) {
-        const formData = new FormData();
-        formData.append('image', imageFile);
-        const uploadRes = await fetch(BASE_URL + '/api/files/upload', {
-          method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() }, body: formData
-        });
-        const uploadData = await uploadRes.json();
-        proofImageId = uploadData.fileId || null;
+        const fd = new FormData(); fd.append('image', imageFile);
+        const up = await fetch(BASE_URL + '/api/files/upload', { method: 'POST', headers: { 'Authorization': 'Bearer ' + getToken() }, body: fd });
+        const ud = await up.json();
+        proofImageId = ud.fileId || null;
       }
 
       const data = await apiPost('/api/rent/add', { tenantId: user.id, propertyId, amount: Number(amount), month, proofImageId });
       if (data.payment) {
-        msgDiv.innerHTML = '<div class="success-msg">Payment submitted successfully!</div>';
-        ['r-property','r-amount','r-month','r-image'].forEach(id => document.getElementById(id).value = '');
+        msgDiv.innerHTML = '<div class="success-msg">✅ Payment submitted! The landlord will verify it shortly.</div>';
+        ['r-amount', 'r-month'].forEach(id => document.getElementById(id).value = '');
+        document.getElementById('r-image').value = '';
+        document.getElementById('r-image-name').style.display = 'none';
+        loadRentHistory();
       } else {
-        msgDiv.innerHTML = '<div class="error-msg">' + (data.message || 'Error submitting') + '</div>';
+        msgDiv.innerHTML = '<div class="error-msg" style="display:block;">' + (data.message || 'Error submitting') + '</div>';
       }
     }
 
+    // ── Rent History (tenant-specific) ──
+    async function loadRentHistory() {
+      const tbody = document.getElementById('rent-history-tbody');
+      tbody.innerHTML = '<tr class="skeleton-row"><td>████████████</td><td>████████</td><td>█████████</td><td>███████</td><td>██████████</td></tr>';
+      try {
+        const data = await apiGet('/api/rent/tenant/' + user.id);
+        const payments = data.payments || [];
+        if (!payments.length) {
+          tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:20px;">No payments submitted yet</td></tr>';
+          return;
+        }
+        tbody.innerHTML = payments.map(p => {
+          const addr = p.propertyId ? (typeof p.propertyId === 'object' ? p.propertyId.address : p.propertyId) : '—';
+          return '<tr>' +
+            '<td style="font-weight:500;">' + addr + '</td>' +
+            '<td style="color:#6ee7b7;font-weight:600;">PKR ' + p.amount.toLocaleString() + '</td>' +
+            '<td>' + p.month + '</td>' +
+            '<td>' + statusBadge(p.status) + '</td>' +
+            '<td style="color:var(--muted);font-size:12px;">' + new Date(p.createdAt).toLocaleDateString() + '</td>' +
+            '</tr>';
+        }).join('');
+      } catch (err) {
+        tbody.innerHTML = '<tr><td colspan="5" style="color:#fca5a5;">Error loading payment history</td></tr>';
+      }
+    }
+
+    // ── Load Properties ──
+    let _properties = [];
+    async function loadProperties() {
+      try {
+        const res = await fetch(BASE_URL + '/api/properties', { headers: { 'Authorization': 'Bearer ' + getToken() } });
+        const data = await res.json();
+        _properties = data.properties || [];
+        const opts = _properties.length
+          ? '<option value="">— Select a property —</option>' + _properties.map(p => '<option value="' + p._id + '">' + p.address + '</option>').join('')
+          : '<option value="">No properties found — ask your landlord</option>';
+        document.getElementById('c-property').innerHTML = opts;
+        document.getElementById('r-property').innerHTML = opts;
+      } catch (e) {
+        const err = '<option value="">Error loading properties</option>';
+        document.getElementById('c-property').innerHTML = err;
+        document.getElementById('r-property').innerHTML = err;
+      }
+    }
+
+    // ── My Reviews ──
     async function loadMyReviews() {
       try {
         const data = await apiGet('/api/reviews/tenant/' + user.id);
         const reviews = data.reviews || [];
-        const reviewList = document.getElementById('review-list');
-        if (!reviews.length) { reviewList.innerHTML = '<p style="color:#888;">No reviews submitted yet</p>'; return; }
-        reviewList.innerHTML = reviews.map(r => {
-          const cName = (typeof r.contractorId === 'object') ? (r.contractorId ? r.contractorId.name : 'Unknown') : 'Unknown';
-          return '<div style="background:#f5f5f5;padding:12px;border-radius:8px;margin-bottom:10px;">' +
-            '<div style="font-weight:600;">' + cName + '</div>' +
-            '<div style="color:#666;font-size:12px;margin:5px 0;">' + '⭐'.repeat(r.rating) + ' (' + r.rating + '/5)</div>' +
-            '<div style="font-size:13px;">' + (r.comment || 'No comment provided') + '</div></div>';
+        const el = document.getElementById('review-list');
+        if (!reviews.length) { el.innerHTML = '<p style="color:var(--muted);">No reviews submitted yet</p>'; return; }
+        el.innerHTML = reviews.map(r => {
+          const cName = typeof r.contractorId === 'object' ? (r.contractorId ? r.contractorId.name : 'Unknown') : 'Unknown';
+          return '<div class="review-card">' +
+            '<div class="review-card-contractor">' + cName + '</div>' +
+            '<div class="review-stars">' + '⭐'.repeat(r.rating) + ' <span style="color:var(--muted);font-size:12px;">(' + r.rating + '/5)</span></div>' +
+            '<div class="review-comment">' + (r.comment || 'No comment provided') + '</div>' +
+            '</div>';
         }).join('');
-      } catch (error) {
-        document.getElementById('review-list').innerHTML = '<p style="color:red;">Error loading reviews</p>';
-      }
+      } catch (err) { document.getElementById('review-list').innerHTML = '<p style="color:#fca5a5;">Error loading reviews</p>'; }
     }
 
     async function loadContractorsForReview() {
@@ -320,40 +486,32 @@
         const contractors = (data.users || []).filter(u => u.role === 'contractor');
         document.getElementById('r-contractor').innerHTML = '<option value="">Select a contractor</option>' +
           contractors.map(c => '<option value="' + c._id + '">' + c.name + '</option>').join('');
-      } catch (error) { console.error('Error loading contractors:', error); }
+      } catch (err) { }
     }
 
     async function loadComplaintsForReview() {
       try {
-        const [complaintsResp, reviewsResp] = await Promise.all([
-          loadComplaints(),
-          apiGet('/api/reviews/tenant/' + user.id)
-        ]);
-        const reviewedComplaintIds = new Set((reviewsResp.reviews || []).map(r => {
-          return (typeof r.complaintId === 'object') ? r.complaintId?._id : r.complaintId;
-        }).filter(Boolean));
-
-        const myResolved = complaintsResp.filter(c => {
+        const [comp, rev] = await Promise.all([loadComplaints(), apiGet('/api/reviews/tenant/' + user.id)]);
+        const reviewed = new Set((rev.reviews || []).map(r => typeof r.complaintId === 'object' ? r.complaintId?._id : r.complaintId).filter(Boolean));
+        const myResolved = comp.filter(c => {
           if (!c.tenantId) return false;
-          const tid = (typeof c.tenantId === 'object') ? c.tenantId._id : c.tenantId;
-          return tid === user.id && c.status === 'resolved' && !reviewedComplaintIds.has(c._id);
+          const tid = typeof c.tenantId === 'object' ? c.tenantId._id : c.tenantId;
+          return tid === user.id && c.status === 'resolved' && !reviewed.has(c._id);
         });
-        const select = document.getElementById('r-complaint');
-        if (!myResolved.length) { select.innerHTML = '<option value="">-- No unreviewed resolved complaints --</option>'; return; }
-        select.innerHTML = '<option value="">-- Select a resolved complaint --</option>' +
-          myResolved.map(c => '<option value="' + c._id + '">' + c.title + ' (Resolved)</option>').join('');
-      } catch (error) {
-        document.getElementById('r-complaint').innerHTML = '<option value="">Error loading complaints</option>';
-      }
+        const sel = document.getElementById('r-complaint');
+        sel.innerHTML = myResolved.length
+          ? '<option value="">— Select a resolved complaint —</option>' + myResolved.map(c => '<option value="' + c._id + '">' + c.title + '</option>').join('')
+          : '<option value="">No unreviewed resolved complaints</option>';
+      } catch (err) { document.getElementById('r-complaint').innerHTML = '<option value="">Error loading</option>'; }
     }
 
     function updateContractorFromComplaint() {
-      const complaintId = document.getElementById('r-complaint').value;
-      if (!complaintId) { document.getElementById('r-contractor').value = ''; return; }
+      const id = document.getElementById('r-complaint').value;
+      if (!id) return;
       loadComplaints().then(complaints => {
-        const c = complaints.find(x => x._id === complaintId);
+        const c = complaints.find(x => x._id === id);
         if (c && c.contractorId) {
-          const cid = (typeof c.contractorId === 'object') ? c.contractorId._id : c.contractorId;
+          const cid = typeof c.contractorId === 'object' ? c.contractorId._id : c.contractorId;
           document.getElementById('r-contractor').value = cid;
         }
       });
@@ -365,24 +523,23 @@
       const rating = document.getElementById('r-rating').value;
       const comment = document.getElementById('r-comment').value.trim();
       const msgDiv = document.getElementById('review-msg');
-
       if (!complaintId || !contractorId || !rating) {
-        msgDiv.innerHTML = '<div class="error-msg" style="background:#ffebee;color:#c62828;padding:10px;border-radius:6px;">Please select complaint, contractor, and rating</div>';
+        msgDiv.innerHTML = '<div class="error-msg" style="display:block;">Please select complaint, contractor, and rating</div>';
         return;
       }
-
       const data = await apiPost('/api/reviews/add', { tenantId: user.id, contractorId, complaintId, rating: Number(rating), comment });
       if (data.review) {
-        msgDiv.innerHTML = '<div class="success-msg" style="background:#e8f5e9;color:#2e7d32;padding:10px;border-radius:6px;">Review submitted successfully!</div>';
-        ['r-complaint','r-contractor','r-rating','r-comment'].forEach(id => document.getElementById(id).value = '');
-        loadMyReviews();
-        loadComplaintsForReview(); // refresh to remove reviewed complaint from dropdown
+        msgDiv.innerHTML = '<div class="success-msg">✅ Review submitted successfully!</div>';
+        ['r-complaint', 'r-contractor', 'r-rating', 'r-comment'].forEach(id => document.getElementById(id).value = '');
+        loadMyReviews(); loadComplaintsForReview();
       } else {
-        msgDiv.innerHTML = '<div class="error-msg" style="background:#ffebee;color:#c62828;padding:10px;border-radius:6px;">' + (data.message || 'Error submitting review') + '</div>';
+        msgDiv.innerHTML = '<div class="error-msg" style="display:block;">' + (data.message || 'Error submitting review') + '</div>';
       }
     }
 
     loadMyComplaints();
+    loadProperties();
   </script>
 </body>
+
 </html>

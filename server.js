@@ -18,7 +18,7 @@ const io = new Server(server, {
 
 app.use(express.json());
 app.use(cors());
-// Routes
+
 const userRoutes = require("./routes/userRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
 const complaintRoutes = require("./routes/complaintRoutes");
@@ -27,6 +27,7 @@ const fileRoutes = require("./routes/fileRoutes");
 const rentRoutes = require("./routes/rentRoutes");
 const reviewRoutes = require("./routes/reviewRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const notificationRoutes = require("./routes/notificationRoutes");
 
 app.use("/api/users", userRoutes);
 app.use("/api/properties", propertyRoutes);
@@ -36,17 +37,16 @@ app.use("/api/files", fileRoutes);
 app.use("/api/rent", rentRoutes);
 app.use("/api/reviews", reviewRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
   res.send("RentCare backend is running");
 });
 
-// Socket.io
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
   socket.on("join_room", (userId) => {
-    // Ensure userId is a string
     const roomName = String(userId);
     socket.join(roomName);
     console.log("User", socket.id, "joined room:", roomName);
@@ -57,7 +57,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start cron jobs
 startCronJobs(io);
 
 module.exports = { io };

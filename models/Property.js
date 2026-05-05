@@ -11,6 +11,10 @@ const propertySchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    monthlyRent: {
+      type: Number,
+      default: null,
+    },
     tenants: [
       {
         type: mongoose.Schema.Types.ObjectId,
