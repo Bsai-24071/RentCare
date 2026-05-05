@@ -93,8 +93,47 @@ const getTenantReviews = async (req, res) => {
   }
 };
 
+const getLandlordContractorReviews = async (req, res) => {
+  try {
+    const landlordId = req.user?.id || req.user?._id;
+    if (!landlordId) return res.status(401).json({ message: "Unauthorized" });
+
+    const Property = require("../models/Property");
+    const Complaint = require("../models/Complaint");
+
+    const properties = await Property.find({ landlordId }).select('_id');
+    const propertyIds = properties.map(p => p._id);
+
+    const complaints = await Complaint.find({ propertyId: { $in: propertyIds } }).select('_id contractorId');
+    const complaintIds = complaints.map(c => c._id);
+
+    const reviews = await Review.find({ complaintId: { $in: complaintIds } })
+      .populate("contractorId", "name email")
+      .populate("tenantId", "name email")
+      .populate("complaintId", "title");
+
+    if (!reviews || reviews.length === 0) {
+      return res.status(200).json({
+        message: "No reviews for your contractors",
+        reviews: [],
+      });
+    }
+
+    res.status(200).json({
+      message: "Landlord contractor reviews retrieved successfully",
+      reviews,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Error fetching reviews",
+      error: error.message,
+    });
+  }
+};
+
 module.exports = {
   addReview,
   getContractorReviews,
   getTenantReviews,
+  getLandlordContractorReviews,
 };

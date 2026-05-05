@@ -5,6 +5,7 @@ const { GridFSBucket, ObjectId } = require("mongodb");
 const { protect } = require("../middleware/authMiddleware");
 const Complaint = require("../models/Complaint");
 const RentPayment = require("../models/RentPayment");
+const Property = require("../models/Property");
 
 const router = express.Router();
 
@@ -42,7 +43,13 @@ async function embedImage(doc, fileId, maxWidth = 300, maxHeight = 200) {
 
 router.get("/complaints", protect, async (req, res) => {
   try {
-    const complaints = await Complaint.find()
+    const landlordId = req.user?.id || req.user?._id;
+    if (!landlordId) return res.status(401).json({ message: "Unauthorized" });
+
+    const properties = await Property.find({ landlordId }).select('_id');
+    const propertyIds = properties.map(p => p._id);
+
+    const complaints = await Complaint.find({ propertyId: { $in: propertyIds } })
       .populate("tenantId", "name email")
       .populate("contractorId", "name")
       .populate("propertyId", "address")
@@ -131,7 +138,13 @@ router.get("/complaints", protect, async (req, res) => {
 
 router.get("/rent-payments", protect, async (req, res) => {
   try {
-    const payments = await RentPayment.find()
+    const landlordId = req.user?.id || req.user?._id;
+    if (!landlordId) return res.status(401).json({ message: "Unauthorized" });
+
+    const properties = await Property.find({ landlordId }).select('_id');
+    const propertyIds = properties.map(p => p._id);
+
+    const payments = await RentPayment.find({ propertyId: { $in: propertyIds } })
       .populate("tenantId", "name email")
       .populate("propertyId", "address")
       .lean();

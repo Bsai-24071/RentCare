@@ -190,4 +190,34 @@ const getComplaintById = async (req, res) => {
   }
 };
 
-module.exports = { addComplaint, addComplaintWithImage, updateComplaintStatus, getAllComplaints, getComplaintById };
+const getTenantComplaints = async (req, res) => {
+  try {
+    const tenantId = req.user?.id || req.user?._id;
+    if (!tenantId) return res.status(401).json({ message: "Unauthorized" });
+
+    const complaints = await Complaint.find({ tenantId })
+      .populate("tenantId", "name email role")
+      .populate("propertyId", "address landlordId")
+      .populate("contractorId", "name email");
+    res.status(200).json({ message: "Tenant complaints fetched successfully", complaints });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching complaints", error: error.message });
+  }
+};
+
+const getContractorComplaints = async (req, res) => {
+  try {
+    const contractorId = req.user?.id || req.user?._id;
+    if (!contractorId) return res.status(401).json({ message: "Unauthorized" });
+
+    const complaints = await Complaint.find({ contractorId })
+      .populate("tenantId", "name email role")
+      .populate("propertyId", "address landlordId")
+      .populate("contractorId", "name email");
+    res.status(200).json({ message: "Contractor complaints fetched successfully", complaints });
+  } catch (error) {
+    res.status(500).json({ message: "Error fetching complaints", error: error.message });
+  }
+};
+
+module.exports = { addComplaint, addComplaintWithImage, updateComplaintStatus, getAllComplaints, getComplaintById, getTenantComplaints, getContractorComplaints };

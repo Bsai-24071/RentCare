@@ -468,24 +468,32 @@
     // ── Contractor Ratings ──
     async function loadContractorRatings() {
       try {
-        const res = await fetch(BASE_URL + '/api/users', { headers: { 'Authorization': 'Bearer ' + getToken() } });
-        const data = await res.json();
-        const ctrs = (data.users || []).filter(u => u.role === 'contractor');
-        const el = document.getElementById('ratings-list');
-        if (!ctrs.length) { el.innerHTML = '<p style="color:var(--muted);">No contractors found</p>'; return; }
-
-        let allReviews = [];
-        for (const contractor of ctrs) {
-          try {
-            const rd = await apiGet('/api/reviews/contractor/' + contractor._id);
-            if (rd.reviews && rd.reviews.length > 0) {
-              allReviews.push({ name: contractor.name, reviews: rd.reviews, avg: rd.averageRating || 0 });
-            }
-          } catch (err) { }
+        const data = await apiGet('/api/reviews/landlord/contractors/reviews');
+        const reviews = data.reviews || [];
+        
+        if (!reviews.length) {
+          document.getElementById('ratings-list').innerHTML = '<p style="color:var(--muted);">No contractor reviews yet</p>';
+          return;
         }
 
-        if (!allReviews.length) { el.innerHTML = '<p style="color:var(--muted);">No contractor reviews yet</p>'; return; }
+        const contractorMap = {};
+        reviews.forEach(r => {
+          const cid = typeof r.contractorId === 'object' ? r.contractorId._id : r.contractorId;
+          const cname = typeof r.contractorId === 'object' ? r.contractorId.name : 'Unknown';
+          if (!contractorMap[cid]) {
+            contractorMap[cid] = { name: cname, reviews: [], totalRating: 0 };
+          }
+          contractorMap[cid].reviews.push(r);
+          contractorMap[cid].totalRating += r.rating;
+        });
 
+        const allReviews = Object.values(contractorMap).map(c => ({
+          name: c.name,
+          reviews: c.reviews,
+          avg: parseFloat((c.totalRating / c.reviews.length).toFixed(1))
+        }));
+
+        const el = document.getElementById('ratings-list');
         el.innerHTML = allReviews.map(c =>
           '<div class="contractor-rating-block">' +
           '<div class="contractor-rating-name">' + c.name + '</div>' +

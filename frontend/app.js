@@ -116,7 +116,14 @@ function statusBadge(status) {
 
 async function loadComplaints() {
   try {
-    const data = await apiGet('/api/complaints');
+    const user = getUser();
+    let endpoint = '/api/complaints';
+    if (user && user.role === 'tenant') {
+      endpoint = '/api/complaints/my/tenant';
+    } else if (user && user.role === 'contractor') {
+      endpoint = '/api/complaints/my/contractor';
+    }
+    const data = await apiGet(endpoint);
     return data.complaints || [];
   } catch (error) {
     console.error('Error loading complaints:', error);

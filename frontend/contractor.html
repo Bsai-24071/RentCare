@@ -125,7 +125,7 @@
     async function loadJobs() {
       const tbody = document.getElementById('jobs-tbody');
       try {
-        const complaints = await loadComplaints();
+        const complaints = await apiGet('/api/complaints/my/contractor').then(d => d.complaints || []);
         const myJobs = complaints.filter(c =>
           c.contractorId && (c.contractorId._id === user.id || c.contractorId === user.id)
         );
@@ -133,7 +133,7 @@
           tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px;">No jobs assigned yet</td></tr>';
           return;
         }
-        tbody.innerHTML = myJobs.map(c => {
+        tbody.innerHTML = complaints.map(c => {
           let deadlineDisplay = '<span style="color:var(--muted);">Not set</span>';
           if (c.deadline) {
             const d = new Date(c.deadline);

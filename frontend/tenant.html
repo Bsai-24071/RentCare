@@ -290,7 +290,7 @@
     // ── Load Complaints ──
     async function loadMyComplaints() {
       try {
-        const data = await apiGet('/api/complaints');
+        const data = await apiGet('/api/complaints/my/tenant');
         const complaints = data.complaints || [];
         const tbody = document.getElementById('complaints-tbody');
         const mine = complaints.filter(c => {
@@ -298,11 +298,11 @@
           const tid = typeof c.tenantId === 'object' ? c.tenantId._id : c.tenantId;
           return tid === user.id;
         });
-        if (!mine.length) {
+        if (!complaints.length) {
           tbody.innerHTML = '<tr><td colspan="5" style="color:var(--muted);text-align:center;padding:24px;">No complaints filed yet</td></tr>';
           return;
         }
-        tbody.innerHTML = mine.map(c => {
+        tbody.innerHTML = complaints.map(c => {
           let deadlineDisplay = 'Not set';
           if (c.deadline) {
             const d = new Date(c.deadline);
