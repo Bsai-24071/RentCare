@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RentCare — Landlord Dashboard</title>
+
   <meta name="description"
     content="Manage your properties, complaints, and rent payments from your RentCare landlord dashboard.">
   <link rel="stylesheet" href="style.css">
@@ -15,7 +16,7 @@
 
     <div class="sidebar">
       <div class="sidebar-header">
-        <div class="sidebar-logo-icon">🏠</div>
+        <div class="sidebar-logo-icon"><i class="fa-solid fa-house"></i></div>
         <h2>RentCare</h2>
       </div>
       <nav>
@@ -49,7 +50,7 @@
         </div>
         <div class="topbar-right">
           <div class="notif-bell" id="notif-bell-btn" onclick="toggleNotifPanel()">
-            🔔
+            <i class="fa-regular fa-bell"></i>
             <span class="notif-count" id="notif-count">0</span>
           </div>
           <button class="logout-btn" onclick="logout()">Logout</button>
@@ -470,7 +471,7 @@
       try {
         const data = await apiGet('/api/reviews/landlord/contractors/reviews');
         const reviews = data.reviews || [];
-        
+
         if (!reviews.length) {
           document.getElementById('ratings-list').innerHTML = '<p style="color:var(--muted);">No contractor reviews yet</p>';
           return;
@@ -516,6 +517,7 @@
     loadDashboard();
     loadContractors();
   </script>
+  <script src="https://kit.fontawesome.com/1909e00268.js" crossorigin="anonymous"></script>
 </body>
 
 </html>

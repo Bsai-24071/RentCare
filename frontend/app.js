@@ -230,7 +230,7 @@ function injectNotifPanel() {
 
   const header = document.createElement('div');
   header.className = 'notif-panel-header';
-  header.textContent = '🔔 Notifications';
+  header.textContent = ' Notifications';
 
   const body = document.createElement('div');
   body.className = 'notif-panel-body';
