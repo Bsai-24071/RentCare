@@ -118,13 +118,74 @@ rentcare-backend/
 |---|---|
 | **Runtime** | Node.js |
 | **Framework** | Express.js v5 |
-| **Database** | MongoDB (via Mongoose) |
+| **Database** | MongoDB Atlas (via Mongoose) |
 | **File Storage** | MongoDB GridFS |
 | **Authentication** | JWT + bcryptjs |
 | **Real-time** | Socket.IO |
 | **Scheduling** | node-cron |
 | **PDF Generation** | PDFKit |
 | **Frontend** | Vanilla HTML, CSS, JavaScript |
+| **Backend Hosting** | Render |
+| **Frontend Hosting** | Netlify |
+
+---
+
+## 🌐 Live Demo
+
+The application is fully deployed and accessible online:
+
+| Service | URL |
+|---|---|
+| 🖥️ **Frontend (Netlify)** | [https://ahmad-rentcare.netlify.app](https://ahmad-rentcare.netlify.app) |
+| ⚙️ **Backend API (Render)** | [https://rentcare-fj1w.onrender.com](https://rentcare-fj1w.onrender.com) |
+| 🗄️ **Database (MongoDB Atlas)** | MongoDB Atlas — Cluster0 |
+
+> **Note:** The backend is hosted on Render's free tier. If the server has been inactive for 15+ minutes, the first request may take ~30–50 seconds (cold start). After that, it responds normally.
+
+---
+
+## 🚀 Deployment Architecture
+
+```
+┌─────────────────────┐     API Calls      ┌─────────────────────┐
+│                     │ ──────────────────► │                     │
+│   Netlify (Frontend)│                     │   Render (Backend)  │
+│   HTML / CSS / JS   │ ◄────────────────── │   Node.js / Express │
+│                     │     JSON Responses  │                     │
+└─────────────────────┘                     └─────────┬───────────┘
+                                                      │
+                                                      │ Mongoose
+                                                      ▼
+                                            ┌─────────────────────┐
+                                            │  MongoDB Atlas       │
+                                            │  (Cloud Database)    │
+                                            │  + GridFS (Files)    │
+                                            └─────────────────────┘
+```
+
+### Step 1: MongoDB Atlas (Cloud Database)
+
+> **Why Atlas?** During development, I used a **local MongoDB** instance (`mongodb://localhost:27017`). However, when deploying the backend to Render (a cloud server), the cloud server **cannot access a database running on my local machine**. MongoDB Atlas solves this by hosting the database in the cloud, making it accessible from anywhere — both my local machine during development and the Render server in production.
+
+- Migrated from local MongoDB to **MongoDB Atlas** cloud cluster
+- Database: `rentcare` on `Cluster0`
+- Network Access: Configured to allow connections from Render's dynamic IPs (`0.0.0.0/0`)
+- All data (users, properties, complaints, payments, files) stored in the cloud
+
+### Step 2: Render (Backend Deployment)
+- Backend API deployed as a **Web Service** on Render
+- Build Command: `npm install`
+- Start Command: `node server.js`
+- Environment variables (`MONGO_URI`, `JWT_SECRET`) configured in Render dashboard
+- Express serves both the API and static frontend files
+- Socket.IO works seamlessly for real-time notifications
+
+### Step 3: Netlify (Frontend Deployment)
+- Frontend (HTML/CSS/JS) deployed separately on **Netlify**
+- Connected to the same GitHub repository
+- Publish directory set to `frontend/`
+- `BASE_URL` in `app.js` points to the Render backend URL
+- Auto-deploys on every `git push` to the `main` branch
 
 ---
 
@@ -180,7 +241,7 @@ Open any of the HTML files in the `frontend/` folder in your browser to use the 
 
 | Variable | Description |
 |---|---|
-| `MONGO_URI` | Your MongoDB connection string |
+| `MONGO_URI` | Your MongoDB Atlas connection string |
 | `JWT_SECRET` | Secret key for signing JWT tokens |
 | `PORT` | Server port (default: `5000`) |
 
@@ -206,6 +267,9 @@ This project gave me hands-on experience with:
 - Automating server-side tasks with **cron jobs**
 - Generating **dynamic PDF reports** with embedded images using PDFKit
 - Building a clean, modular **MVC architecture** in Node.js
+- **Cloud deployment** using MongoDB Atlas, Render, and Netlify
+- Managing **environment variables** and secrets across multiple cloud platforms
+- Handling **CORS**, cold starts, and cross-origin API communication in production
 
 ---
 
@@ -217,4 +281,19 @@ Advanced Database Systems (ADBS) Project
 
 ---
 
+## 🧪 Test Accounts (For Evaluation)
+
+Use the following pre-registered accounts to test the application at [https://ahmad-rentcare.netlify.app](https://ahmad-rentcare.netlify.app):
+
+| Role | Email | Password |
+|---|---|---|
+| 🏠 **Landlord** | `Landlord123@itu.com` | `Landloard123` |
+| 🧑‍💼 **Tenant** | `Tenant123@itu.com` | `Tenant123` |
+| 🔧 **Contractor** | `Contractor123@itu.com` | `Contrator123` |
+
+> Each role has its own dedicated dashboard with different features and permissions.
+
+---
+
 *Built with ❤️ to solve a real-world problem.*
+
