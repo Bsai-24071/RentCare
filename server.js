@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const http = require("http");
 const dotenv = require("dotenv");
 const { Server } = require("socket.io");
@@ -18,6 +19,9 @@ const io = new Server(server, {
 
 app.use(express.json());
 app.use(cors());
+
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, "frontend")));
 
 const userRoutes = require("./routes/userRoutes");
 const propertyRoutes = require("./routes/propertyRoutes");
@@ -40,7 +44,7 @@ app.use("/api/reports", reportRoutes);
 app.use("/api/notifications", notificationRoutes);
 
 app.get("/", (req, res) => {
-  res.send("RentCare backend is running");
+  res.sendFile(path.join(__dirname, "frontend", "index.html"));
 });
 
 io.on("connection", (socket) => {
