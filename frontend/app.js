@@ -1,4 +1,4 @@
-const BASE_URL = window.location.origin;
+const BASE_URL = 'https://rentcare-fj1w.onrender.com';
 
 // ── Auth helpers (unchanged) ──────────────────────────────────────────────────
 
