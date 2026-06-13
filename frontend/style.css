@@ -1111,3 +1111,229 @@ tr:hover td {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted);
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* Tablet & below */
+@media (max-width: 900px) {
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+
+  .sidebar nav {
+    display: flex;
+    overflow-x: auto;
+    padding: 8px 10px;
+    gap: 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .sidebar nav a {
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 8px 14px;
+    font-size: 13px;
+    margin-bottom: 0;
+  }
+
+  .sidebar-user {
+    display: none;
+  }
+
+  .main-content {
+    padding: 20px 16px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-value {
+    font-size: 26px;
+  }
+
+  .payment-cards-grid {
+    grid-template-columns: 1fr;
+  }
+
+  /* Horizontal scroll for tables */
+  .card {
+    overflow-x: auto;
+  }
+
+  table {
+    min-width: 600px;
+  }
+
+  #notif-panel {
+    width: 280px;
+    right: -40px;
+  }
+
+  .modal-content {
+    margin: 10% auto;
+    width: 94%;
+    padding: 22px;
+  }
+}
+
+/* Mobile phones */
+@media (max-width: 576px) {
+  .auth-card {
+    padding: 30px 22px;
+    margin: 12px;
+    border-radius: 16px;
+  }
+
+  .auth-card h1 {
+    font-size: 22px;
+  }
+
+  .dashboard {
+    flex-direction: column;
+  }
+
+  .sidebar-header {
+    padding: 14px 16px;
+  }
+
+  .sidebar h2 {
+    font-size: 16px;
+  }
+
+  .sidebar nav a .nav-icon {
+    font-size: 14px;
+  }
+
+  .sidebar nav a span:not(.nav-icon) {
+    font-size: 12px;
+  }
+
+  .main-content {
+    padding: 16px 12px;
+  }
+
+  .topbar {
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .page-title {
+    font-size: 18px;
+  }
+
+  .topbar-right {
+    gap: 10px;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 14px 16px;
+    border-radius: 10px;
+  }
+
+  .stat-label {
+    font-size: 10px;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
+
+  .card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .card h3 {
+    font-size: 14px;
+  }
+
+  .btn {
+    padding: 8px 14px;
+    font-size: 12px;
+  }
+
+  .pdf-actions {
+    flex-direction: column;
+  }
+
+  .pdf-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .payment-card {
+    padding: 16px;
+  }
+
+  .payment-card-body {
+    grid-template-columns: 1fr;
+  }
+
+  .payment-card-actions {
+    flex-direction: column;
+  }
+
+  .payment-card-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .toast {
+    left: 12px;
+    right: 12px;
+    max-width: none;
+    bottom: 16px;
+  }
+
+  #notif-panel {
+    width: 260px;
+    right: -60px;
+  }
+
+  .modal-content {
+    margin: 15% auto;
+    width: 96%;
+    padding: 18px;
+  }
+
+  .logout-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+
+  .review-card {
+    padding: 14px;
+  }
+
+  .contractor-rating-block {
+    padding: 14px;
+  }
+
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 10px 12px;
+    font-size: 13px;
+  }
+}
